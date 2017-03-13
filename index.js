@@ -26,6 +26,12 @@ prompt.get({
     issues: {
       description: colors.magenta("Potential Issues"),
     },
+    customer_fix_resolved: {
+      description: colors.magenta("Resolved Customer Fixes"),
+    },
+    customer_fix_underlying: {
+      description: colors.magenta("Underlying Issues Created"),
+    },
   }
 }, function (err, result) {
   constructEmail(result);
@@ -37,6 +43,8 @@ function constructEmail(result) {
   var upcoming = result.upcoming.split(',');
   var project_status = result.project_status.split(',');
   var issues = result.issues.split(',');
+  var customer_fix_resolved = result.customer_fix_resolved.split(',');
+  var customer_fix_underlying = result.customer_fix_underlying.split(',');
   var regex = config.key_regex;
   var promises = [];
 
@@ -86,6 +94,28 @@ function constructEmail(result) {
 
   promises.push(addHeader("<br/>Potential Issues<br/>"));
   issues.forEach(function(str) {
+    if(regex.test(str)) {
+      promises.push(jira.getIssue(str));
+    } else {
+      promises.push(new Promise(function (resolve,reject) {
+        resolve("-" + str + "<br/>");         
+      }));
+    }
+  });
+
+  promises.push(addHeader("<br/>Customer Fixes Resolved<br/>"));
+  customer_fix_resolved.forEach(function(str) {
+    if(regex.test(str)) {
+      promises.push(jira.getIssue(str));
+    } else {
+      promises.push(new Promise(function (resolve,reject) {
+        resolve("-" + str + "<br/>");         
+      }));
+    }
+  });
+
+  promises.push(addHeader("<br/>Underyling Issues Created<br/>"));
+  customer_fix_underlying.forEach(function(str) {
     if(regex.test(str)) {
       promises.push(jira.getIssue(str));
     } else {
